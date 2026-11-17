@@ -1,0 +1,8 @@
+{
+  "name": "external10-student-details-form",
+  "version": "1.0.0",
+  "description": "DevOps external Question 10 - Student Details Form",
+  "main": "app.js",
+  "scripts": {"start": "node app.js"},
+  "dependencies": {"express": "^4.21.2"}
+}

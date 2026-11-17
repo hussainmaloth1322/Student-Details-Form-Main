@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details Form</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px #0002;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #17365d;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #174ea6;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #0d3475;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #174ea6;
+            color: white;
+        }
+
+        #message {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #count {
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Student Registration Form -->
+    <div class="container">
+
+        <h1>Student Details Form</h1>
+
+        <form id="studentForm">
+
+            <label>Student Name</label>
+            <input type="text" name="name" required>
+
+            <label>Email</label>
+            <input type="email" name="email" required>
+
+            <label>Roll Number</label>
+            <input type="text" name="rollNumber" required>
+
+            <label>Department</label>
+            <select name="department" required>
+                <option value="">Select Department</option>
+                <option value="CSE">CSE</option>
+                <option value="AIML">AIML</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="IT">IT</option>
+                <option value="CIVIL">CIVIL</option>
+            </select>
+
+            <button type="submit">Register Student</button>
+
+        </form>
+
+        <p id="message"></p>
+
+    </div>
+
+    <!-- Registered Students Table -->
+    <div class="container">
+
+        <h2>Registered Students</h2>
+
+        <p id="count">Total Registered Students: 0</p>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Roll Number</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+
+                <tbody id="studentsBody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <button onclick="loadStudents()">Refresh Students</button>
+
+    </div>
+
+    <script>
+
+        const form = document.getElementById("studentForm");
+        const message = document.getElementById("message");
+
+        // Register student
+        form.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const studentData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch("/submit", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(studentData)
+                });
+
+                const result = await response.json();
+
+                message.textContent = result.message;
+                message.style.color = result.success ? "green" : "red";
+
+                if (result.success) {
+                    form.reset();
+                    loadStudents();
+                }
+
+            } catch (error) {
+                message.textContent = "Server connection failed!";
+                message.style.color = "red";
+            }
+
+        });
+
+        // Display all registered students
+        async function loadStudents() {
+
+            try {
+                const response = await fetch("/students");
+                const students = await response.json();
+
+                const tbody = document.getElementById("studentsBody");
+                tbody.innerHTML = "";
+
+                document.getElementById("count").textContent =
+                    "Total Registered Students: " + students.length;
+
+                if (students.length === 0) {
+                    tbody.innerHTML =
+                        '<tr><td colspan="5" style="text-align:center">No students registered yet.</td></tr>';
+                    return;
+                }
+
+                students.forEach((student, index) => {
+
+                    const row = document.createElement("tr");
+
+                    [
+                        index + 1,
+                        student.name,
+                        student.email,
+                        student.rollNumber,
+                        student.department
+                    ].forEach(value => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+
+                    tbody.appendChild(row);
+
+                });
+
+            } catch (error) {
+                console.error("Error loading students:", error);
+            }
+
+        }
+
+        // Load students when page opens
+        loadStudents();
+
+    </script>
+
+</body>
+</html>
